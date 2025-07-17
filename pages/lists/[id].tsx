@@ -55,34 +55,14 @@ export default function ListDetailPage() {
     setLoading(false);
   }, [listId]);
 
-  // Подписка на события WebSocket
-  useEffect(() => {
-    if (!listId) return;
-    const socket = getSocket();
-    socket.emit('join-list', listId);
-    const handler = (event: any) => {
-      if (event.type === 'product-add') {
-        setProducts(prev => [...prev, event.product]);
-      } else if (event.type === 'product-delete') {
-        setProducts(prev => prev.filter(p => p.id !== event.productId));
-      } else if (event.type === 'product-edit') {
-        setProducts(prev => prev.map(p => p.id === event.product.id ? event.product : p));
-      } else if (event.type === 'user-add') {
-        setUsers(prev => [...prev, event.user]);
-      } else if (event.type === 'user-delete') {
-        setUsers(prev => prev.filter(u => u.userId !== event.userId));
-      }
-    };
-    socket.on('list-event', handler);
-    return () => {
-      socket.off('list-event', handler);
-    };
-  }, [listId]);
-
   // Подписка на события Ably для обновления списка продуктов в реальном времени
   useEffect(() => {
     if (!listId) return;
-    const ably = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_KEY || "" });
+    if (!process.env.NEXT_PUBLIC_ABLY_KEY) {
+      console.error('Ably public key is not set');
+      return;
+    }
+    const ably = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_KEY });
     const channel = ably.channels.get(`list-${listId}`);
     const handler = (message: any) => {
       if (message.name === "product-add") {
