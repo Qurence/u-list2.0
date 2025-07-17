@@ -82,7 +82,7 @@ export default function ListDetailPage() {
   // Подписка на события Ably для обновления списка продуктов в реальном времени
   useEffect(() => {
     if (!listId) return;
-    const ably = new Ably.Realtime.Promise({ key: process.env.NEXT_PUBLIC_ABLY_KEY || "" });
+    const ably = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_KEY || "" });
     const channel = ably.channels.get(`list-${listId}`);
     const handler = (message: any) => {
       if (message.name === "product-add") {
