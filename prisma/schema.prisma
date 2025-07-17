@@ -1,0 +1,84 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String?     @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  lists         ListUser[]
+  ownedLists    List[]      @relation("OwnedLists")
+  createdAt     DateTime    @default(now())
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model List {
+  id        String      @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User        @relation("OwnedLists", fields: [ownerId], references: [id])
+  users     ListUser[]
+  products  Product[]
+  createdAt DateTime    @default(now())
+}
+
+model ListUser {
+  id      String   @id @default(cuid())
+  list    List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId  String
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  joinedAt DateTime @default(now())
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String
+  quantity  Int      @default(1)
+  checked   Boolean  @default(false)
+  list      List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId    String
+  createdAt DateTime @default(now())
+} 
