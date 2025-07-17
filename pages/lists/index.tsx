@@ -22,6 +22,22 @@ export default function ListsPage() {
   const [fetching, setFetching] = useState(true);
   const router = useRouter();
   const [productStats, setProductStats] = useState<Record<string, ListProductStats>>({});
+  // --- добавлено для анимации стека ---
+  const skeletonCount = 5;
+  const [stackOrder, setStackOrder] = useState<number[]>(Array.from({ length: skeletonCount }, (_, i) => i));
+  useEffect(() => {
+    if (!fetching) return;
+    const interval = setInterval(() => {
+      setStackOrder(prev => {
+        const next = [...prev];
+        const last = next.pop();
+        if (last !== undefined) next.unshift(last);
+        return next;
+      });
+    }, 900); // скорость медленнее
+    return () => clearInterval(interval);
+  }, [fetching]);
+  // --- конец добавленного ---
 
   // Загрузка списков пользователя
   const fetchLists = async () => {
@@ -89,8 +105,61 @@ export default function ListsPage() {
     }
   };
 
+  if (session === undefined) {
+    return null;
+  }
   if (!session) {
     return <div className="p-8">Требуется вход...</div>;
+  }
+
+  // Скелетон-стек для мгновенного отображения загрузки
+  if (fetching) {
+    return (
+      <div className="max-w-2xl mx-auto p-8">
+        <div className="flex items-center mb-4">
+          <button
+            className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm mr-4"
+            onClick={() => router.push('/')}
+          >
+            Назад
+          </button>
+          <h2 className="text-2xl font-bold">Мои списки</h2>
+        </div>
+        <form className="flex md:flex-row flex-col gap-2 mb-4">
+          <input
+            className="border rounded-[18px] px-2 py-1 flex-1"
+            placeholder="Название списка"
+            disabled
+            value=""
+          />
+          <button
+            className="px-6 py-2 bg-blue-600 text-white rounded-full shadow font-semibold text-sm md:text-base hover:bg-blue-700 transition opacity-60"
+            disabled
+          >
+            + Создать список
+          </button>
+        </form>
+        <div className="relative mb-6 h-48 flex items-end">
+          {stackOrder.map((i, idx) => (
+            <div
+              key={i}
+              className={`absolute left-0 right-0 mx-auto bg-white rounded-lg shadow border border-gray-100 animate-pulse flex items-center gap-3 px-4 py-3 transition-all duration-500`}
+              style={{
+                bottom: `${idx * 8}px`,
+                zIndex: 10 - idx,
+                width: `calc(100% - ${idx * 6}px)`,
+                opacity: 1 - idx * 0.08
+              }}
+            >
+              <div className="h-6 w-6 bg-gray-200 rounded-full" />
+              <div className="flex-1 h-4 bg-gray-200 rounded" />
+              <div className="h-5 w-5 bg-gray-200 rounded-full" />
+              <div className="h-5 w-5 bg-gray-200 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -104,10 +173,10 @@ export default function ListsPage() {
         </button>
         <h2 className="text-2xl font-bold">Мои списки</h2>
       </div>
-      <form onSubmit={handleCreateList} className="flex gap-2 mb-4">
+      <form onSubmit={handleCreateList} className="flex md:flex-row flex-col gap-2 mb-4">
         <input
           className="border rounded-[18px] px-2 py-1 flex-1"
-          value={newListName}
+          value={newListName || ""}
           onChange={e => setNewListName(e.target.value)}
           placeholder="Название списка"
         />
@@ -118,9 +187,7 @@ export default function ListsPage() {
           + Создать список
         </button>
       </form>
-      {fetching ? (
-        <div className="bg-white p-4 rounded shadow mb-4">Загрузка...</div>
-      ) : lists.length === 0 ? (
+      {lists.length === 0 ? (
         <div className="bg-white p-4 rounded shadow mb-4">Нет списков. Создайте новый!</div>
       ) : (
         <ul className="mb-6 flex flex-col gap-3">

@@ -87,7 +87,20 @@ export default function ListDetailPage() {
   }
 
   if (loading) {
-    return <div className="p-8">Загрузка...</div>;
+    return (
+      <div className="p-8 max-w-2xl mx-auto">
+        <ul className="flex flex-col gap-3 animate-pulse">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="flex items-center gap-3 bg-white rounded-xl shadow border border-gray-100 px-4 py-3">
+              <div className="h-5 w-5 bg-gray-200 rounded-full" />
+              <div className="flex-1 h-4 bg-gray-200 rounded" />
+              <div className="h-5 w-5 bg-gray-200 rounded-full" />
+              <div className="h-5 w-5 bg-gray-200 rounded-full" />
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   }
 
   // Добавление продукта
@@ -217,7 +230,7 @@ export default function ListDetailPage() {
     <div className="max-w-2xl mx-auto p-4 sm:p-8">
       {/* Прогресс-бар */}
       <ProgressBar products={products} />
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+      <div className="flex flex-row justify-between sm:items-center sm:justify-between mb-6 gap-2">
         <div className="flex items-center gap-3">
           <ShoppingCartIcon className="h-8 w-8 text-blue-500 drop-shadow" />
           <h2 className="text-2xl font-bold text-gray-900 drop-shadow-sm">{listInfo ? listInfo.name : 'Список'}</h2>
@@ -227,7 +240,7 @@ export default function ListDetailPage() {
           onClick={() => setShowUsersModal(true)}
         >
           <UserGroupIcon className="h-5 w-5 text-blue-500" />
-          Участники
+          <span className="max-sm:hidden">Участники</span>
         </button>
       </div>
       <div className="mb-10">
@@ -238,7 +251,7 @@ export default function ListDetailPage() {
         <form onSubmit={handleAddProduct} className="flex gap-2 mb-6">
           <input
             className="border rounded-[18px] px-3 py-2 flex-1 shadow focus:ring-2 focus:ring-blue-200 transition"
-            value={newProduct}
+            value={newProduct || ""}
             onChange={e => setNewProduct(e.target.value)}
             placeholder="Название продукта"
           />
@@ -266,7 +279,7 @@ export default function ListDetailPage() {
                     className="accent-green-600 h-5 w-5"
                   />
                 )}
-                {editProductId === p.id ? (
+                {editProductId === p.id && editProductName !== undefined && editProductQty !== undefined ? (
                   <form onSubmit={handleSaveEdit} className="flex flex-col gap-2 items-stretch flex-1">
                     <div className="flex gap-2">
                       <input
@@ -323,7 +336,7 @@ export default function ListDetailPage() {
             <form onSubmit={handleAddUser} className="flex gap-2 mb-3">
               <input
                 className="border rounded-full px-3 py-1 flex-1 text-sm shadow-sm focus:ring-2 focus:ring-blue-200 transition"
-                value={newUserEmail}
+                value={newUserEmail || ""}
                 onChange={e => setNewUserEmail(e.target.value)}
                 placeholder="Email участника"
               />
