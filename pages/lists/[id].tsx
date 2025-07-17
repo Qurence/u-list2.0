@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useState, useCallback } from 'react';
 import { getSocket } from '../../lib/socketClient';
 import toast from 'react-hot-toast';
+import { ShoppingCartIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface Product {
   id: string;
@@ -222,71 +223,94 @@ export default function ListDetailPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-        <h2 className="text-2xl font-bold">{listInfo ? listInfo.name : 'Список'}</h2>
+    <div className="max-w-2xl mx-auto p-4 sm:p-8">
+      {/* Прогресс-бар */}
+      <ProgressBar products={products} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+        <div className="flex items-center gap-3">
+          <ShoppingCartIcon className="h-8 w-8 text-blue-500 drop-shadow" />
+          <h2 className="text-2xl font-bold text-gray-900 drop-shadow-sm">{listInfo ? listInfo.name : 'Список'}</h2>
+        </div>
         <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 w-full sm:w-auto"
+          className="px-4 py-2 bg-gray-100 rounded-full shadow hover:bg-gray-200 text-sm flex items-center gap-2 w-auto min-w-[0]"
           onClick={() => setShowUsersModal(true)}
         >
+          <UserGroupIcon className="h-5 w-5 text-blue-500" />
           Участники
         </button>
       </div>
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-2">Продукты</h3>
-        <form onSubmit={handleAddProduct} className="flex gap-2 mb-4">
+      <div className="mb-10">
+        <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <CheckCircleIcon className="h-6 w-6 text-green-500" />
+          Продукты
+        </h3>
+        <form onSubmit={handleAddProduct} className="flex gap-2 mb-6">
           <input
-            className="border rounded px-2 py-1 flex-1"
+            className="border rounded-[18px] px-3 py-2 flex-1 shadow focus:ring-2 focus:ring-blue-200 transition"
             value={newProduct}
             onChange={e => setNewProduct(e.target.value)}
             placeholder="Название продукта"
           />
-          <button className="bg-blue-600 text-white px-4 py-1 rounded">Добавить</button>
+          <button className="bg-blue-600 text-white rounded-full shadow px-6 py-2 font-semibold hover:bg-blue-700 transition">
+            + Добавить
+          </button>
         </form>
-        <ul>
+        <ul className="flex flex-col gap-3">
           {products
-            .slice() // копия массива
+            .slice()
             .sort((a, b) => {
-              // Сначала неотмеченные, потом отмеченные
               if (a.checked !== b.checked) return a.checked ? 1 : -1;
-              // Внутри группы сортировка по createdAt (по возрастанию)
               if (a.createdAt && b.createdAt) {
                 return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
               }
               return 0;
             })
             .map(p => (
-              <li key={p.id} className="flex items-center gap-2 mb-2">
-                <input
-                  type="checkbox"
-                  checked={p.checked}
-                  onChange={() => handleToggleChecked(p)}
-                  className="accent-green-600"
-                />
+              <li key={p.id} className={`flex items-center gap-3 bg-white rounded-xl shadow border border-gray-100 px-4 py-3 group transition ${p.checked ? 'opacity-60' : ''}`}>
+                {editProductId !== p.id && (
+                  <input
+                    type="checkbox"
+                    checked={p.checked}
+                    onChange={() => handleToggleChecked(p)}
+                    className="accent-green-600 h-5 w-5"
+                  />
+                )}
                 {editProductId === p.id ? (
-                  <form onSubmit={handleSaveEdit} className="flex gap-2 items-center">
-                    <input
-                      className="border rounded px-2 py-1"
-                      value={editProductName}
-                      onChange={e => setEditProductName(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      min={1}
-                      className="border rounded px-2 py-1 w-16"
-                      value={editProductQty}
-                      onChange={e => setEditProductQty(Number(e.target.value))}
-                    />
-                    <button className="bg-green-600 text-white px-2 py-1 rounded" type="submit">Сохранить</button>
-                    <button className="bg-gray-300 px-2 py-1 rounded" type="button" onClick={() => setEditProductId(null)}>Отмена</button>
+                  <form onSubmit={handleSaveEdit} className="flex flex-col gap-2 items-stretch flex-1">
+                    <div className="flex gap-2">
+                      <input
+                        className="border rounded px-2 py-1 flex-1"
+                        value={editProductName}
+                        onChange={e => setEditProductName(e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        min={1}
+                        className="border rounded px-2 py-1 w-16"
+                        value={editProductQty}
+                        onChange={e => setEditProductQty(Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button className="bg-green-600 text-white px-2 py-1 rounded-full shadow hover:bg-green-700 transition flex items-center gap-1" type="submit">
+                        <CheckCircleIcon className="h-5 w-5" /> Сохранить
+                      </button>
+                      <button className="bg-gray-300 px-2 py-1 rounded-full shadow hover:bg-gray-400 transition flex items-center gap-1" type="button" onClick={() => setEditProductId(null)}>
+                        Отмена
+                      </button>
+                    </div>
                   </form>
                 ) : (
                   <>
-                    <span className={p.checked ? 'line-through text-gray-400' : ''}>
+                    <span className={`flex-1 ${p.checked ? 'line-through text-gray-400' : ''}`}>
                       {p.name}{p.quantity > 1 ? ` (x${p.quantity})` : ''}
                     </span>
-                    <button onClick={() => handleStartEdit(p)} className="text-blue-500">Редактировать</button>
-                    <button onClick={() => handleDeleteProduct(p.id)} className="text-red-500">Удалить</button>
+                    <button onClick={() => handleStartEdit(p)} className="text-blue-500 hover:bg-blue-50 rounded-full p-1 transition" title="Редактировать">
+                      <PencilSquareIcon className="h-5 w-5" />
+                    </button>
+                    <button onClick={() => handleDeleteProduct(p.id)} className="text-red-500 hover:bg-red-50 rounded-full p-1 transition" title="Удалить">
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </>
                 )}
               </li>
@@ -296,32 +320,32 @@ export default function ListDetailPage() {
       {/* Модалка участников */}
       {showUsersModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[95vw] max-w-xs sm:max-w-md relative border border-gray-100">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold"
               onClick={() => setShowUsersModal(false)}
               aria-label="Закрыть"
             >
               ×
             </button>
-            <h3 className="text-xl font-semibold mb-2">Участники</h3>
-            <form onSubmit={handleAddUser} className="flex gap-2 mb-4">
+            <h3 className="text-lg font-semibold mb-3 text-center">Участники</h3>
+            <form onSubmit={handleAddUser} className="flex gap-2 mb-3">
               <input
-                className="border rounded px-2 py-1 flex-1"
+                className="border rounded-full px-3 py-1 flex-1 text-sm shadow-sm focus:ring-2 focus:ring-blue-200 transition"
                 value={newUserEmail}
                 onChange={e => setNewUserEmail(e.target.value)}
                 placeholder="Email участника"
               />
-              <button className="bg-blue-600 text-white px-4 py-1 rounded">Добавить</button>
+              <button className="bg-blue-600 text-white px-4 py-1 rounded-full shadow hover:bg-blue-700 transition text-sm">Добавить</button>
             </form>
-            <ul>
+            <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {users.map(u => (
-                <li key={u.id} className="flex items-center gap-2 mb-2">
-                  <span>{u.user?.name || u.user?.email}</span>
+                <li key={u.id} className="flex items-center gap-2 justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                  <span className="truncate max-w-[120px]">{u.user?.name || u.user?.email}</span>
                   {(u.userId === session.user.id) ? (
-                    <button onClick={handleLeave} className="text-orange-500">Покинуть</button>
+                    <button onClick={handleLeave} className="text-orange-600 bg-orange-100 hover:bg-orange-200 rounded-full px-3 py-1 text-xs font-medium transition">Покинуть</button>
                   ) : (
-                    <button onClick={() => handleDeleteUser(u.userId)} className="text-red-500">Удалить</button>
+                    <button onClick={() => handleDeleteUser(u.userId)} className="text-red-600 bg-red-100 hover:bg-red-200 rounded-full px-3 py-1 text-xs font-medium transition">Удалить</button>
                   )}
                 </li>
               ))}
@@ -329,7 +353,30 @@ export default function ListDetailPage() {
           </div>
         </div>
       )}
-      <button onClick={() => router.push('/lists')} className="text-blue-600 underline">Назад к спискам</button>
+      <button onClick={() => router.push('/lists')} className="mt-8 px-6 py-2 bg-blue-600 text-white rounded-full shadow font-semibold hover:bg-blue-700 transition text-base">
+        Назад к спискам
+      </button>
+    </div>
+  );
+}
+
+// Прогресс-бар компонент
+function ProgressBar({ products }: { products: Product[] }) {
+  const total = products.length;
+  const bought = products.filter(p => p.checked).length;
+  const percent = total === 0 ? 0 : Math.round((bought / total) * 100);
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs text-gray-500">Прогресс покупок</span>
+        <span className="text-xs text-gray-500">{bought}/{total}</span>
+      </div>
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-500 transition-all"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
     </div>
   );
 } 

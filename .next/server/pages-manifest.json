@@ -2,12 +2,11 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/socket": "pages/api/socket.js",
   "/lists": "pages/lists.js",
   "/lists/[id]": "pages/lists/[id].js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
-  "/api/lists/[id]": "pages/api/lists/[id].js",
+  "/": "pages/index.js",
   "/api/lists": "pages/api/lists.js",
   "/api/lists/[id]/products": "pages/api/lists/[id]/products.js",
-  "/api/lists/[id]/users": "pages/api/lists/[id]/users.js"
+  "/api/lists/[id]/users": "pages/api/lists/[id]/users.js",
+  "/api/lists/[id]": "pages/api/lists/[id].js"
 }
