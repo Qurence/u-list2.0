@@ -2,10 +2,14 @@ import { getServerSession } from 'next-auth/next';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authOptions } from '../../auth/[...nextauth]';
 import { PrismaClient } from '@prisma/client';
-import Ably from "ably/promises";
+import Ably from "ably";
+
+if (!process.env.ABLY_API) {
+  throw new Error("ABLY_API env variable is not set");
+}
+const ably = new Ably.Rest(process.env.ABLY_API);
 
 const prisma = new PrismaClient();
-const ably = new Ably.Rest(process.env.ABLY_API);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
