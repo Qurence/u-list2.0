@@ -248,7 +248,7 @@ export default function ListDetailPage() {
           <CheckCircleIcon className="h-6 w-6 text-green-500" />
           Продукты
         </h3>
-        <form onSubmit={handleAddProduct} className="flex gap-2 mb-6">
+        <form onSubmit={handleAddProduct} className="flex md:flex-row flex-col gap-2 mb-6">
           <input
             className="border rounded-[18px] px-3 py-2 flex-1 shadow focus:ring-2 focus:ring-blue-200 transition"
             value={newProduct || ""}
@@ -333,7 +333,7 @@ export default function ListDetailPage() {
               ×
             </button>
             <h3 className="text-lg font-semibold mb-3 text-center">Участники</h3>
-            <form onSubmit={handleAddUser} className="flex gap-2 mb-3">
+            <form onSubmit={handleAddUser} className="flex md:flex-row flex-col gap-2 mb-3">
               <input
                 className="border rounded-full px-3 py-1 flex-1 text-sm shadow-sm focus:ring-2 focus:ring-blue-200 transition"
                 value={newUserEmail || ""}
