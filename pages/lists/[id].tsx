@@ -100,10 +100,7 @@ export default function ListDetailPage() {
       body: JSON.stringify({ name: newProduct }),
     });
     if (res.ok) {
-      const created = await res.json();
-      setProducts(prev => [...prev, created]);
       setNewProduct('');
-      getSocket().emit('list-event', listId, { type: 'product-add', product: created });
       toast.success('Продукт добавлен!');
     } else {
       toast.error('Ошибка при добавлении продукта');
@@ -118,8 +115,6 @@ export default function ListDetailPage() {
       body: JSON.stringify({ productId }),
     });
     if (res.ok) {
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      getSocket().emit('list-event', listId, { type: 'product-delete', productId });
       toast.success('Продукт удалён!');
     } else {
       toast.error('Ошибка при удалении продукта');
@@ -143,9 +138,6 @@ export default function ListDetailPage() {
       body: JSON.stringify({ productId: editProductId, name: editProductName, quantity: editProductQty }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-      getSocket().emit('list-event', listId, { type: 'product-edit', product: updated });
       setEditProductId(null);
       setEditProductName('');
       setEditProductQty(1);
@@ -163,10 +155,7 @@ export default function ListDetailPage() {
       body: JSON.stringify({ productId: product.id, checked: !product.checked }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-      getSocket().emit('list-event', listId, { type: 'product-edit', product: updated });
-      toast.success(updated.checked ? 'Отмечено как куплено!' : 'Снята отметка куплено');
+      toast.success(!product.checked ? 'Отмечено как куплено!' : 'Снята отметка куплено');
     } else {
       toast.error('Ошибка при обновлении продукта');
     }
