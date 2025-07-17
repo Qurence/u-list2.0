@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getSocket } from '../../lib/socketClient';
 import toast from 'react-hot-toast';
 import { ShoppingCartIcon, PencilSquareIcon, TrashIcon, UserGroupIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import * as Ably from "ably";
 
 interface Product {
   id: string;
@@ -75,6 +76,27 @@ export default function ListDetailPage() {
     socket.on('list-event', handler);
     return () => {
       socket.off('list-event', handler);
+    };
+  }, [listId]);
+
+  // Подписка на события Ably для обновления списка продуктов в реальном времени
+  useEffect(() => {
+    if (!listId) return;
+    const ably = new Ably.Realtime.Promise({ key: process.env.NEXT_PUBLIC_ABLY_KEY || "" });
+    const channel = ably.channels.get(`list-${listId}`);
+    const handler = (message: any) => {
+      if (message.name === "product-add") {
+        setProducts(prev => [...prev, message.data]);
+      } else if (message.name === "product-edit") {
+        setProducts(prev => prev.map(p => p.id === message.data.id ? message.data : p));
+      } else if (message.name === "product-delete") {
+        setProducts(prev => prev.filter(p => p.id !== message.data.productId));
+      }
+    };
+    channel.subscribe(handler);
+    return () => {
+      channel.unsubscribe(handler);
+      ably.close();
     };
   }, [listId]);
 

@@ -2,8 +2,10 @@ import { getServerSession } from 'next-auth/next';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authOptions } from '../../auth/[...nextauth]';
 import { PrismaClient } from '@prisma/client';
+import Ably from "ably/promises";
 
 const prisma = new PrismaClient();
+const ably = new Ably.Rest(process.env.ABLY_API);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -23,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const product = await prisma.product.create({
       data: { name, quantity: quantity || 1, listId: id },
     });
+    await ably.channels.get(`list-${id}`).publish("product-add", product);
     return res.status(201).json(product);
   }
 
@@ -33,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id: productId },
       data: { name, quantity, checked },
     });
+    await ably.channels.get(`list-${id}`).publish("product-edit", product);
     return res.json(product);
   }
 
@@ -40,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { productId } = req.body;
     if (!productId) return res.status(400).json({ error: 'Product id required' });
     await prisma.product.delete({ where: { id: productId } });
+    await ably.channels.get(`list-${id}`).publish("product-delete", { productId });
     return res.status(204).end();
   }
 
